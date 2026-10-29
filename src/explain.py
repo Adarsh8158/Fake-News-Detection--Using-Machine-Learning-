@@ -52,8 +52,6 @@ def explain_news(pipeline, text: str, top_k: int = 10) -> dict:
     # Impact score = TF-IDF weight * Logistic Regression coefficient
     impact_scores = doc_weights[active_indices] * coefficients
 
-    # Negative scores -> leans FAKE (Class 0)
-    # Positive scores -> leans REAL (Class 1)
     fake_mask = impact_scores < 0
     real_mask = impact_scores > 0
 
@@ -87,37 +85,36 @@ def explain_news(pipeline, text: str, top_k: int = 10) -> dict:
 
 def generate_highlighted_html(raw_text: str, fake_words: list, real_words: list) -> str:
     """
-    Highlights detected fake-leaning words in soft red and
-    real-leaning words in soft green directly within the original text.
-    Ensures high contrast readability across light and dark themes.
+    Generates a professional, theme-adaptive text highlight block.
+    Uses refined translucency and semantic colors that look clean on dark & light modes.
     """
     if not raw_text:
         return ""
 
     escaped_text = html.escape(raw_text)
 
-    # Sort words by length descending so multi-word phrases match before single words
+    # Sort tokens by length descending so longer n-grams match first
     fake_set = sorted([item["word"] for item in fake_words], key=len, reverse=True)
     real_set = sorted([item["word"] for item in real_words], key=len, reverse=True)
 
     for word in fake_set:
         pattern = re.compile(rf"\b({re.escape(word)})\b", re.IGNORECASE)
         escaped_text = pattern.sub(
-            r'<span style="background-color: #fee2e2; color: #991b1b; padding: 2px 6px; border-radius: 4px; font-weight: 700; border-bottom: 2px solid #ef4444;" title="Fake trigger word">\1</span>',
+            r'<mark style="background-color: rgba(239, 68, 68, 0.18); color: #ef4444; padding: 2px 6px; border-radius: 4px; font-weight: 600; border-bottom: 2px solid #ef4444;" title="Suspicious Indicator">\1</mark>',
             escaped_text
         )
 
     for word in real_set:
         pattern = re.compile(rf"\b({re.escape(word)})\b", re.IGNORECASE)
         escaped_text = pattern.sub(
-            r'<span style="background-color: #dcfce7; color: #14532d; padding: 2px 6px; border-radius: 4px; font-weight: 700; border-bottom: 2px solid #22c55e;" title="Credible news token">\1</span>',
+            r'<mark style="background-color: rgba(34, 197, 94, 0.18); color: #10b981; padding: 2px 6px; border-radius: 4px; font-weight: 600; border-bottom: 2px solid #10b981;" title="Credible Indicator">\1</mark>',
             escaped_text
         )
 
     return (
-        f'<div style="line-height: 1.9; font-size: 1.05rem; padding: 1.2rem; '
-        f'background-color: #ffffff; color: #0f172a !important; '
-        f'border: 1px solid #cbd5e1; border-radius: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">'
+        f'<div style="line-height: 1.85; font-size: 1.02rem; padding: 1.25rem; '
+        f'background: rgba(128, 128, 128, 0.05); border: 1px solid rgba(128, 128, 128, 0.15); '
+        f'border-radius: 10px; font-family: inherit;">'
         f'{escaped_text}'
         f'</div>'
     )
@@ -180,4 +177,3 @@ if __name__ == "__main__":
     sample = "WASHINGTON (Reuters) - Senate leaders agreed on a bipartisan spending measure Tuesday."
     res = predict_article(sample)
     print("Label:", res["label"])
-    print("Highlighted HTML generated:", len(res["highlighted_html"]) > 0)
