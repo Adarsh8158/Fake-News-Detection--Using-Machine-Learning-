@@ -89,6 +89,7 @@ def generate_highlighted_html(raw_text: str, fake_words: list, real_words: list)
     """
     Highlights detected fake-leaning words in soft red and
     real-leaning words in soft green directly within the original text.
+    Ensures high contrast readability across light and dark themes.
     """
     if not raw_text:
         return ""
@@ -102,18 +103,24 @@ def generate_highlighted_html(raw_text: str, fake_words: list, real_words: list)
     for word in fake_set:
         pattern = re.compile(rf"\b({re.escape(word)})\b", re.IGNORECASE)
         escaped_text = pattern.sub(
-            r'<span style="background-color: #fecaca; color: #991b1b; padding: 2px 4px; border-radius: 4px; font-weight: 600; text-decoration: underline wavy #ef4444;" title="Fake trigger word">\1</span>',
+            r'<span style="background-color: #fee2e2; color: #991b1b; padding: 2px 6px; border-radius: 4px; font-weight: 700; border-bottom: 2px solid #ef4444;" title="Fake trigger word">\1</span>',
             escaped_text
         )
 
     for word in real_set:
         pattern = re.compile(rf"\b({re.escape(word)})\b", re.IGNORECASE)
         escaped_text = pattern.sub(
-            r'<span style="background-color: #bbf7d0; color: #14532d; padding: 2px 4px; border-radius: 4px; font-weight: 600; text-decoration: underline solid #22c55e;" title="Credible news token">\1</span>',
+            r'<span style="background-color: #dcfce7; color: #14532d; padding: 2px 6px; border-radius: 4px; font-weight: 700; border-bottom: 2px solid #22c55e;" title="Credible news token">\1</span>',
             escaped_text
         )
 
-    return f'<div style="line-height: 1.8; font-size: 1.05rem; padding: 1rem; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px;">{escaped_text}</div>'
+    return (
+        f'<div style="line-height: 1.9; font-size: 1.05rem; padding: 1.2rem; '
+        f'background-color: #ffffff; color: #0f172a !important; '
+        f'border: 1px solid #cbd5e1; border-radius: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">'
+        f'{escaped_text}'
+        f'</div>'
+    )
 
 
 def predict_article(raw_text: str) -> dict:

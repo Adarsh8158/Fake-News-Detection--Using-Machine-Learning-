@@ -36,7 +36,7 @@ st.set_page_config(
 )
 
 # ---------------------------------------------------------
-# Custom Modern UI Styling (CSS)
+# Custom Modern UI Styling (CSS) - Dark & Light Mode Compatible
 # ---------------------------------------------------------
 st.markdown("""
 <style>
@@ -47,21 +47,21 @@ st.markdown("""
     }
     
     .hero-container {
-        padding: 1.5rem 0 1rem 0;
+        padding: 1.2rem 0 0.8rem 0;
     }
     
     .hero-title {
         font-size: 2.6rem;
         font-weight: 800;
         letter-spacing: -0.02em;
-        background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 50%, #06b6d4 100%);
+        background: linear-gradient(135deg, #38bdf8 0%, #3b82f6 50%, #818cf8 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         margin-bottom: 0.3rem;
     }
     
     .hero-subtitle {
-        color: #4b5563;
+        color: #94a3b8;
         font-size: 1.1rem;
         margin-bottom: 1rem;
         font-weight: 500;
@@ -69,39 +69,39 @@ st.markdown("""
     
     .tag-pill {
         display: inline-block;
-        padding: 0.3rem 0.8rem;
+        padding: 0.35rem 0.85rem;
         border-radius: 9999px;
         font-size: 0.82rem;
         font-weight: 700;
         margin-right: 0.4rem;
-        background-color: #eff6ff;
-        color: #1d4ed8;
-        border: 1px solid #bfdbfe;
+        background-color: rgba(59, 130, 246, 0.15);
+        color: #60a5fa;
+        border: 1px solid rgba(59, 130, 246, 0.3);
     }
     
     /* Result Banners */
     .banner-fake {
-        background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+        background: linear-gradient(135deg, #450a0a 0%, #7f1d1d 100%);
         border: 2px solid #ef4444;
         border-radius: 12px;
         padding: 1.4rem;
-        color: #991b1b;
+        color: #fecaca;
         font-size: 1.4rem;
         font-weight: 800;
         margin: 1.2rem 0;
-        box-shadow: 0 4px 12px rgba(239, 68, 68, 0.12);
+        box-shadow: 0 4px 14px rgba(239, 68, 68, 0.25);
     }
     
     .banner-real {
-        background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+        background: linear-gradient(135deg, #052e16 0%, #14532d 100%);
         border: 2px solid #22c55e;
         border-radius: 12px;
         padding: 1.4rem;
-        color: #14532d;
+        color: #bbf7d0;
         font-size: 1.4rem;
         font-weight: 800;
         margin: 1.2rem 0;
-        box-shadow: 0 4px 12px rgba(34, 197, 94, 0.12);
+        box-shadow: 0 4px 14px rgba(34, 197, 94, 0.25);
     }
     
     .word-chip-fake {
@@ -112,7 +112,7 @@ st.markdown("""
         padding: 0.35rem 0.75rem;
         margin: 0.25rem;
         border-radius: 8px;
-        font-weight: 600;
+        font-weight: 700;
         font-size: 0.9rem;
     }
     
@@ -124,52 +124,73 @@ st.markdown("""
         padding: 0.35rem 0.75rem;
         margin: 0.25rem;
         border-radius: 8px;
-        font-weight: 600;
+        font-weight: 700;
         font-size: 0.9rem;
-    }
-    
-    .card-box {
-        background: #ffffff;
-        border: 1px solid #e2e8f0;
-        border-radius: 12px;
-        padding: 1.2rem;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.02);
     }
 </style>
 """, unsafe_allow_html=True)
 
 
 def create_gauge_chart(prob_real: float):
-    """Generates an interactive Plotly Gauge speedometer."""
+    """
+    Generates a crystal-clear, high-contrast Plotly Gauge speedometer
+    with glowing badges and 100% visible text in dark and light themes.
+    """
+    if prob_real >= 60.0:
+        bar_color = "#22c55e"
+        badge_text = "🟢 VERIFIED REAL NEWS"
+    elif prob_real >= 40.0:
+        bar_color = "#eab308"
+        badge_text = "🟡 UNCERTAIN / MIXED"
+    else:
+        bar_color = "#ef4444"
+        badge_text = "🔴 HIGH PROBABILITY FAKE"
+
     fig = go.Figure(go.Indicator(
         mode="gauge+number",
         value=prob_real,
         domain={'x': [0, 1], 'y': [0, 1]},
-        title={'text': "Credibility Index (0% Fake → 100% Real)", 'font': {'size': 18, 'color': "#1f2937"}},
-        number={'suffix': "%", 'font': {'size': 26, 'color': "#111827"}},
+        title={
+            'text': (
+                f"<span style='font-size:22px; font-weight:800; color:#f8fafc; letter-spacing:0.5px;'>Credibility Index</span>"
+                f"<br><span style='font-size:14px; font-weight:700; color:{bar_color};'>{badge_text}</span>"
+            ),
+            'font': {'family': "Plus Jakarta Sans"}
+        },
+        number={
+            'suffix': "%",
+            'font': {'size': 38, 'color': "#ffffff", 'family': "Plus Jakarta Sans"}
+        },
         gauge={
-            'axis': {'range': [0, 100], 'tickwidth': 1, 'tickcolor': "#4b5563"},
-            'bar': {'color': "#2563eb", 'thickness': 0.25},
-            'bgcolor': "white",
+            'axis': {
+                'range': [0, 100],
+                'tickwidth': 2,
+                'tickcolor': "#94a3b8",
+                'tickfont': {'color': '#f8fafc', 'size': 14, 'family': "Plus Jakarta Sans"}
+            },
+            'bar': {'color': bar_color, 'thickness': 0.32},
+            'bgcolor': "rgba(255, 255, 255, 0.08)",
             'borderwidth': 2,
-            'bordercolor': "#e5e7eb",
+            'bordercolor': "#334155",
             'steps': [
-                {'range': [0, 40], 'color': '#fecaca'},
-                {'range': [40, 60], 'color': '#fef08a'},
-                {'range': [60, 100], 'color': '#bbf7d0'}
+                {'range': [0, 40], 'color': 'rgba(239, 68, 68, 0.4)'},
+                {'range': [40, 60], 'color': 'rgba(234, 179, 8, 0.4)'},
+                {'range': [60, 100], 'color': 'rgba(34, 197, 94, 0.4)'}
             ],
             'threshold': {
-                'line': {'color': "black", 'width': 4},
-                'thickness': 0.75,
+                'line': {'color': "#ffffff", 'width': 4},
+                'thickness': 0.85,
                 'value': prob_real
             }
         }
     ))
+    
     fig.update_layout(
-        height=260,
-        margin=dict(l=20, r=20, t=50, b=20),
-        paper_bgcolor="rgba(0,0,0,0)",
-        font={'family': "Plus Jakarta Sans"}
+        height=280,
+        margin=dict(l=25, r=25, t=65, b=25),
+        paper_bgcolor="#0f172a",  # High-contrast solid dark slate card
+        plot_bgcolor="#0f172a",
+        font={'family': "Plus Jakarta Sans", 'color': "#ffffff"}
     )
     return fig
 
@@ -363,7 +384,7 @@ with mode_tab1:
                         unsafe_allow_html=True
                     )
 
-                # 2. Credibility Gauge & Probability Breakdown
+                # 2. High-Contrast Credibility Gauge & Probability Breakdown
                 gauge_col, prob_col = st.columns([1.1, 1])
                 with gauge_col:
                     st.plotly_chart(create_gauge_chart(probs["Real"]), use_container_width=True)
@@ -388,7 +409,7 @@ with mode_tab1:
 
                 with tab_high:
                     st.markdown("##### Visual In-Text Token Breakdown:")
-                    st.caption("Tokens pushing toward <span style='color:#ef4444;font-weight:bold;'>Fake</span> are underlined in wavy red; tokens pushing toward <span style='color:#22c55e;font-weight:bold;'>Real</span> are underlined in green.", unsafe_allow_html=True)
+                    st.caption("Tokens pushing toward <span style='color:#ef4444;font-weight:bold;'>Fake</span> are highlighted in red; tokens pushing toward <span style='color:#22c55e;font-weight:bold;'>Real</span> are highlighted in green.", unsafe_allow_html=True)
                     st.markdown(html_highlight, unsafe_allow_html=True)
 
                 with tab_xai:
