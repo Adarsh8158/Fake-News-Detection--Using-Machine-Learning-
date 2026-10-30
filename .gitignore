@@ -9,10 +9,6 @@ venv/
 env/
 .env
 
-# Large Datasets (GitHub 100MB limit)
-# If tracking with Git, use Git LFS for True.csv and Fake.csv
-data/*.csv
-!data/sample_news.csv
 
 # Temporary files
 .DS_Store

@@ -22,8 +22,9 @@ A TF-IDF + Logistic Regression classifier that labels news articles as **Real** 
 │   └── leakage_check.py     # robustness check
 ├── models/fake_news_model.pkl
 ├── data/
+│   ├── True.csv, Fake.csv   # ISOT dataset
 │   ├── sample_news.csv      # tiny sample for quick tests
-│   └── README.md            # dataset download instructions
+│   └── README.md            # dataset information
 ├── reports/                 # metrics.json, confusion_matrix.png
 ├── tests/test_pipeline.py
 ├── 01_NLP_Basics.ipynb      # notebook: NLP basics
@@ -49,10 +50,9 @@ pip install -r requirements.txt
 
 ## Dataset
 
-The model uses the **ISOT Fake News dataset**: `True.csv` (real articles from Reuters) and `Fake.csv` (articles from sites flagged as unreliable). The full files are over 100 MB, so they are not in this repository.
+The model uses the **ISOT Fake News dataset**: `True.csv` (real articles from Reuters) and `Fake.csv` (articles from sites flagged as unreliable). Both files are included in the `data/` folder, so training works right after cloning.
 
-1. Download the dataset from [Kaggle: Fake and Real News Dataset](https://www.kaggle.com/datasets/clmentbisaillon/fake-and-real-news-dataset).
-2. Put `True.csv` and `Fake.csv` in the `data/` folder.
+The dataset is from [Kaggle: Fake and Real News Dataset](https://www.kaggle.com/datasets/clmentbisaillon/fake-and-real-news-dataset); please refer to that page for its source and terms of use.
 
 `data/sample_news.csv` is a small sample for quick testing and batch prediction in the app.
 
