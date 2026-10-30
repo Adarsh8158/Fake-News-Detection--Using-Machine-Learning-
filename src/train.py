@@ -6,6 +6,7 @@ computes classification metrics, and exports reports.
 
 import os
 import json
+import argparse
 import joblib
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -38,10 +39,17 @@ os.makedirs(MODELS_DIR, exist_ok=True)
 os.makedirs(REPORTS_DIR, exist_ok=True)
 
 
-def evaluate_existing_or_train(sample_size=4000):
+def evaluate_existing_or_train(sample_size=4000, use_saved=False):
     """
-    Evaluates the model on test samples from True.csv and Fake.csv,
-    generates a confusion matrix plot, and saves metrics.json.
+    Trains on a train split of True.csv and Fake.csv (first sample_size/2 rows
+    of each file), evaluates on the held-out test split, generates a confusion
+    matrix plot, and saves metrics.json.
+
+    By default a fresh model is trained, so the reported metrics always come
+    from data the model has not seen. Pass use_saved=True to evaluate the
+    existing models/fake_news_model.pkl instead; only do this if that model
+    was trained on the same train split, otherwise the test set may overlap
+    with its training data and the scores will be inflated.
     """
     true_path = os.path.join(DATA_DIR, "True.csv")
     fake_path = os.path.join(DATA_DIR, "Fake.csv")
@@ -61,6 +69,12 @@ def evaluate_existing_or_train(sample_size=4000):
     df["text"] = df["text"].fillna("")
     df["content"] = (df["title"] + " " + df["text"]).apply(clean_text)
 
+    # Drop empty and duplicate articles so the same text cannot land in both
+    # the training and test splits.
+    before = len(df)
+    df = df[df["content"].str.len() > 0].drop_duplicates(subset="content").reset_index(drop=True)
+    print(f"[Evaluation] Removed {before - len(df)} empty/duplicate articles ({len(df)} remain)")
+
     X = df["content"]
     y = df["label"]
 
@@ -68,7 +82,7 @@ def evaluate_existing_or_train(sample_size=4000):
         X, y, test_size=0.25, random_state=42, stratify=y
     )
 
-    if os.path.exists(model_path):
+    if use_saved and os.path.exists(model_path):
         print(f"[Evaluation] Loading model from: {model_path}")
         pipeline = joblib.load(model_path)
     else:
@@ -135,4 +149,10 @@ def evaluate_existing_or_train(sample_size=4000):
 
 
 if __name__ == "__main__":
-    evaluate_existing_or_train()
+    parser = argparse.ArgumentParser(description="Train and evaluate the fake news model.")
+    parser.add_argument("--use-saved-model", action="store_true",
+                        help="evaluate models/fake_news_model.pkl instead of retraining")
+    parser.add_argument("--sample-size", type=int, default=4000,
+                        help="total articles to use (half from each file)")
+    args = parser.parse_args()
+    evaluate_existing_or_train(sample_size=args.sample_size, use_saved=args.use_saved_model)

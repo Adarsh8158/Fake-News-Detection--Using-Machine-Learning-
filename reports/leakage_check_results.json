@@ -1,0 +1,167 @@
+{
+  "test_size": 998,
+  "results": [
+    {
+      "level": 0,
+      "variant": "Baseline (raw text)",
+      "accuracy": 0.989,
+      "fake_precision": 0.992,
+      "fake_recall": 0.986,
+      "fake_f1": 0.989,
+      "confusion_matrix": [
+        [
+          493,
+          7
+        ],
+        [
+          4,
+          494
+        ]
+      ],
+      "top_words": {
+        "toward_fake": [
+          "trump",
+          "just",
+          "image",
+          "images",
+          "like",
+          "gop",
+          "people",
+          "video",
+          "fact",
+          "know",
+          "doesn",
+          "man",
+          "comey",
+          "didn",
+          "actually"
+        ],
+        "toward_real": [
+          "said",
+          "reuters",
+          "washington reuters",
+          "tax",
+          "washington",
+          "president donald",
+          "republican",
+          "reuters president",
+          "senate",
+          "tuesday",
+          "thursday",
+          "wednesday",
+          "federal",
+          "democratic",
+          "monday"
+        ]
+      }
+    },
+    {
+      "level": 1,
+      "variant": "Reuters tag removed",
+      "accuracy": 0.988,
+      "fake_precision": 0.9939,
+      "fake_recall": 0.982,
+      "fake_f1": 0.9879,
+      "confusion_matrix": [
+        [
+          491,
+          9
+        ],
+        [
+          3,
+          495
+        ]
+      ],
+      "top_words": {
+        "toward_fake": [
+          "trump",
+          "just",
+          "image",
+          "images",
+          "like",
+          "gop",
+          "people",
+          "video",
+          "fact",
+          "know",
+          "man",
+          "doesn",
+          "comey",
+          "didn",
+          "actually"
+        ],
+        "toward_real": [
+          "said",
+          "washington",
+          "tax",
+          "president donald",
+          "republican",
+          "senate",
+          "tuesday",
+          "thursday",
+          "wednesday",
+          "washington president",
+          "federal",
+          "democratic",
+          "friday",
+          "monday",
+          "house"
+        ]
+      }
+    },
+    {
+      "level": 2,
+      "variant": "Reuters + other source tags removed",
+      "accuracy": 0.987,
+      "fake_precision": 0.9919,
+      "fake_recall": 0.982,
+      "fake_f1": 0.9869,
+      "confusion_matrix": [
+        [
+          491,
+          9
+        ],
+        [
+          4,
+          494
+        ]
+      ],
+      "top_words": {
+        "toward_fake": [
+          "trump",
+          "just",
+          "like",
+          "gop",
+          "people",
+          "video",
+          "fact",
+          "know",
+          "doesn",
+          "comey",
+          "man",
+          "actually",
+          "didn",
+          "time",
+          "don"
+        ],
+        "toward_real": [
+          "said",
+          "washington",
+          "tax",
+          "president donald",
+          "republican",
+          "senate",
+          "tuesday",
+          "thursday",
+          "wednesday",
+          "washington president",
+          "federal",
+          "democratic",
+          "friday",
+          "monday",
+          "house"
+        ]
+      }
+    }
+  ]
+}

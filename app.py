@@ -1,5 +1,5 @@
 """
-Fake News Intelligence System - Enterprise Streamlit Dashboard
+Fake News Intelligence System - Streamlit Dashboard
 Modern, clean, and professional interface for news credibility analysis.
 """
 
@@ -230,19 +230,19 @@ with st.sidebar:
             metrics = json.load(f)
 
         c1, c2 = st.columns(2)
-        c1.metric("Accuracy", f"{metrics.get('accuracy', 0.996) * 100:.1f}%")
-        c2.metric("F1-Score", f"{metrics.get('f1_score', 0.996) * 100:.1f}%")
+        c1.metric("Accuracy", f"{metrics.get('accuracy', 0) * 100:.1f}%")
+        c2.metric("F1-Score", f"{metrics.get('f1_score', 0) * 100:.1f}%")
 
         c3, c4 = st.columns(2)
-        c3.metric("Precision", f"{metrics.get('precision', 0.994) * 100:.1f}%")
-        c4.metric("Recall", f"{metrics.get('recall', 0.998) * 100:.1f}%")
+        c3.metric("Precision", f"{metrics.get('precision', 0) * 100:.1f}%")
+        c4.metric("Recall", f"{metrics.get('recall', 0) * 100:.1f}%")
 
     st.markdown("---")
     st.markdown("""
     **Model Configuration:**
     - **Architecture:** TF-IDF + Logistic Regression
     - **Vocabulary:** 50,000 N-gram Features (1, 2)
-    - **Dataset:** ISOT Benchmark (44,898 records)
+    - **Dataset:** ISOT Fake News dataset
     - **Loss Function:** Log-Loss with L2 Penalty
     """)
 
@@ -258,13 +258,21 @@ with st.sidebar:
 # ---------------------------------------------------------
 # Header Section
 # ---------------------------------------------------------
-st.markdown("""
+_acc = None
+try:
+    with open(os.path.join(ROOT_DIR, "reports", "metrics.json"), "r", encoding="utf-8") as _f:
+        _acc = json.load(_f).get("accuracy")
+except Exception:
+    pass
+_acc_badge = f"Test Accuracy: {_acc * 100:.1f}%" if _acc is not None else "Test Accuracy: n/a"
+
+st.markdown(f"""
 <div class="app-header">
     <div class="app-title">🛡️ News Credibility Intelligence</div>
     <div class="app-subtitle">Machine learning system for news credibility verification, text explainability, and stylometric analysis.</div>
     <div>
         <span class="meta-badge">Model: Logistic Regression</span>
-        <span class="meta-badge">Test Accuracy: 99.6%</span>
+        <span class="meta-badge">{_acc_badge}</span>
         <span class="meta-badge">Benchmark: ISOT Dataset</span>
         <span class="meta-badge">XAI Enabled</span>
     </div>

@@ -1,35 +1,35 @@
 # Fake News Detection using Machine Learning
 
-A TF-IDF + Logistic Regression classifier that labels news articles as **Real** or **Fake**, with word-level explanations of each prediction and a Streamlit app to try it out.
+A TF-IDF + Logistic Regression classifier that labels news articles as **Real** or **Fake**. A Streamlit app shows the prediction, the words that pushed it in each direction, and simple writing-style signals.
 
 ## Features
 
-- Text preprocessing pipeline (`src/preprocess.py`)
-- TF-IDF features + Logistic Regression classifier (`src/train.py`)
-- Explainability: shows which words pushed a prediction toward Fake or Real, using the model coefficients (`src/explain.py`)
-- Web app for live predictions (`app.py`)
+- Text cleaning and writing-style signals: ALL-CAPS words, exclamation and question marks, and a heuristic sensationalism score (`src/preprocess.py`)
+- TF-IDF (1-2 word n-grams, 50,000 features) + Logistic Regression (`src/train.py`)
+- Word-level explanations: each word's impact is its TF-IDF weight times its model coefficient (`src/explain.py`)
+- Streamlit app with three input modes: paste text, load an article from a URL, or upload a CSV for batch prediction (`app.py`)
 - Robustness check for dataset leakage (`src/leakage_check.py`)
-- Saved evaluation outputs in `reports/` (`metrics.json`, `confusion_matrix.png`)
+- Unit tests (`tests/test_pipeline.py`)
 
 ## Project Structure
 
 ```
-Fake-News-Detection--Using-Machine-Learning-/
-├── data/                  # dataset files (not committed, see Dataset)
-├── models/                # trained model files
-├── reports/               # metrics.json, confusion_matrix.png, leakage_check_results.json
+├── app.py                   # Streamlit app
 ├── src/
-│   ├── preprocess.py      # text cleaning
-│   ├── train.py           # training and evaluation
-│   ├── explain.py         # word-level explanations
-│   └── leakage_check.py   # robustness check (see below)
-├── tests/                 # unit tests
-├── 01_NLP_Basics.ipynb    # notebook: NLP basics and experiments
-├── app.py                 # web app
+│   ├── preprocess.py        # text cleaning and style signals
+│   ├── train.py             # training and evaluation
+│   ├── explain.py           # prediction and word-level explanations
+│   └── leakage_check.py     # robustness check
+├── models/fake_news_model.pkl
+├── data/
+│   ├── sample_news.csv      # tiny sample for quick tests
+│   └── README.md            # dataset download instructions
+├── reports/                 # metrics.json, confusion_matrix.png
+├── tests/test_pipeline.py
+├── 01_NLP_Basics.ipynb      # notebook: NLP basics
 ├── requirements.txt
-├── run.bat                # Windows helper script
-├── LICENSE
-└── README.md
+├── run.bat                  # starts the app on Windows
+└── LICENSE
 ```
 
 ## Installation
@@ -49,85 +49,108 @@ pip install -r requirements.txt
 
 ## Dataset
 
-The project uses the **ISOT Fake News dataset**, which consists of two files: `Fake.csv` and `True.csv`. Download it (search "ISOT Fake News Dataset" on Kaggle or the University of Victoria ISOT lab page) and place both files in the `data/` folder:
+The model uses the **ISOT Fake News dataset**: `True.csv` (real articles from Reuters) and `Fake.csv` (articles from sites flagged as unreliable). The full files are over 100 MB, so they are not in this repository.
 
-```
-data/
-├── Fake.csv
-└── True.csv
-```
+1. Download the dataset from [Kaggle: Fake and Real News Dataset](https://www.kaggle.com/datasets/clmentbisaillon/fake-and-real-news-dataset).
+2. Put `True.csv` and `Fake.csv` in the `data/` folder.
 
-The data files are not stored in this repository.
+`data/sample_news.csv` is a small sample for quick testing and batch prediction in the app.
 
 ## Usage
 
-Train the model:
-
-```bash
-python src/train.py
-```
-
-Run the app:
+Run the app (a trained model is already in `models/`):
 
 ```bash
 streamlit run app.py
 ```
 
-Run the robustness check (see next section):
+On Windows you can also double-click `run.bat`.
+
+Retrain and evaluate (needs `True.csv` and `Fake.csv` in `data/`):
 
 ```bash
-python src/leakage_check.py
+python src/train.py
+```
+
+This trains a new model on a train split and evaluates it on the held-out test split. It uses the first 2,000 rows of each file (4,000 articles, minus empty/duplicate texts) and a 75/25 stratified split, and overwrites `models/fake_news_model.pkl`, `reports/metrics.json` and `reports/confusion_matrix.png`. Use `--sample-size` to change the amount of data, or `--use-saved-model` to evaluate the existing model without retraining.
+
+Run the tests:
+
+```bash
+python -m unittest discover -s tests
 ```
 
 ## How It Works
 
-1. **Preprocessing:** the article text is cleaned and normalised.
-2. **TF-IDF:** each article becomes a weighted word vector. The weight of a term *t* in a document *d* is
+1. **Cleaning:** lowercase, remove URLs, HTML tags, punctuation and digits.
+2. **TF-IDF:** each article becomes a weighted word vector. With smooth idf (the scikit-learn default), the weight of term *t* in document *d* is
 
    `tf-idf(t, d) = tf(t, d) × ( ln((1 + N) / (1 + df(t))) + 1 )`
 
-   where *N* is the number of documents and *df(t)* is the number of documents containing *t* (the scikit-learn default, smooth idf).
-3. **Classifier:** Logistic Regression outputs a probability between 0% and 100% that the article is fake.
-4. **Explanation:** each word's contribution is its TF-IDF value times its model coefficient, so the app can show which words pushed the prediction in each direction.
+   where *N* is the number of documents and *df(t)* is how many contain *t*.
+3. **Classifier:** Logistic Regression outputs the probability that the article is Real or Fake (labels: Real = 1, Fake = 0).
+4. **Explanation:** for the words in the article, impact = TF-IDF weight × coefficient. Negative impact points to Fake, positive to Real, and the top words are highlighted in the app.
 
 ## Results
 
-The held-out evaluation in `reports/metrics.json` and the confusion matrix below are produced by `src/train.py`:
-
 ![Confusion matrix](reports/confusion_matrix.png)
 
-Open `reports/metrics.json` for the exact accuracy, precision, recall and F1 values from your run. The evaluation set contains 1,000 articles (500 fake, 500 real).
+Held-out evaluation on 998 articles (500 Fake, 498 Real), from `reports/metrics.json` after running `python src/train.py`:
+
+| Metric (Real = positive class) | Value |
+|---|---|
+| Accuracy | 98.9% |
+| Precision | 98.6% |
+| Recall | 99.2% |
+| F1-score | 98.9% |
+
+The model was trained fresh on the train split, so the test articles were not seen in training. Treat these numbers with the caution described below.
 
 ## Known Limitations
 
-- **The ISOT dataset has well-known shortcuts.** Most real articles begin with a source tag such as `CITY (Reuters) -`, and the dataset contains duplicate articles. A model can score very high by learning these artifacts rather than anything about whether the content is true.
-- **A high score on ISOT is therefore not proof that the model detects misinformation.** It means the model separates ISOT's two sources well.
-- **The model reads writing style and vocabulary, not facts.** It does not check claims against any source, so it should not be used as a fact-checker.
-- **It may not generalise to other news sources, topics or time periods** without retraining and testing on data from those sources.
+- **ISOT has well-known shortcuts.** Most real articles start with a source tag like `CITY (Reuters) -`, and the dataset contains duplicate articles. A model can score very high by learning these instead of anything about truthfulness. A high score on ISOT shows the model separates ISOT's two sources well, not that it detects misinformation in general.
+- **The model reads vocabulary and style, not facts.** It does not check claims against any source, so it is not a fact-checker.
+- **It may not generalise** to other news sources, topics or time periods without retraining and testing on data from those sources.
+- **The training sample is the first rows of each file,** not a random sample, so it may not represent the whole dataset.
 
 ## Robustness Check
 
-`src/leakage_check.py` measures how much of the score depends on those artifacts. It drops duplicate texts, then trains the same TF-IDF + Logistic Regression model on the same train/test split at three levels:
+`src/leakage_check.py` measures how much the score depends on those artifacts. It uses the same cleaning, model settings, sample and split as `train.py`, and trains the model three times:
 
-| Variant | What is removed |
+| Variant | What is removed from the text |
 |---|---|
-| Baseline | nothing (duplicates dropped only) |
-| Reuters tag removed | the `(Reuters)` prefix and the word "reuters" |
+| Baseline | nothing |
+| Reuters tag removed | the `(Reuters)` dateline and the word "reuters" |
 | Source tags removed | the above, plus "featured image", "getty images", `pic.twitter.com` links and similar publisher artifacts |
 
-It prints accuracy, precision, recall, F1, the confusion matrix and the top words for each class, and saves everything to `reports/leakage_check_results.json`. You can also test on a different dataset:
-
 ```bash
-python src/leakage_check.py --external data/other.csv --text-col text --label-col label --fake-value 1
+python src/leakage_check.py                  # same 4,000-article sample as train.py
+python src/leakage_check.py --sample-size 0  # all articles
 ```
 
-If accuracy barely changes after cleaning, the model is not relying on those tags. If it drops a lot, the baseline score was inflated.
+It prints accuracy, Fake-class precision/recall/F1, the confusion matrix and the top words per class for each variant, and saves them to `reports/leakage_check_results.json`. To test on a different dataset:
 
-<!-- After running the check, paste your own results table here. -->
+```bash
+python src/leakage_check.py --external data/other.csv --text-col text --label-col label --real-value 1
+```
+
+If accuracy barely changes after cleaning, the model is not leaning on those tags. If it drops a lot, the baseline score was inflated.
+
+### Results of the check
+
+Run on the default 4,000-article sample (3,989 after removing duplicates; 2,991 train / 998 test):
+
+| Variant | Accuracy | Fake precision | Fake recall | Fake F1 |
+|---|---|---|---|---|
+| Baseline | 98.9% | 99.2% | 98.6% | 98.9% |
+| Reuters tag removed | 98.8% | 99.4% | 98.2% | 98.8% |
+| Reuters + other source tags removed | 98.7% | 99.2% | 98.2% | 98.7% |
+
+Removing the source tags lowers accuracy by only 0.2 percentage points, so the score does not depend on the `(Reuters)` tag. The model still leans on other source and style cues: for example "said", weekday names and "washington" point to Real, while "image", "video" and "gop" point to Fake. So this shows the model separates ISOT's two sources well, not that it can judge whether a claim is true. It has not been tested on a different dataset.
 
 ## Tech Stack
 
-Python, pandas, NumPy, scikit-learn, Streamlit, Matplotlib
+Python, scikit-learn, pandas, NumPy, Streamlit, Plotly, Matplotlib, Seaborn, BeautifulSoup
 
 ## License
 
