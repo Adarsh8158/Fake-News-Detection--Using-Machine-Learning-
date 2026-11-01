@@ -249,7 +249,7 @@ with st.sidebar:
     cm_path = os.path.join(ROOT_DIR, "reports", "confusion_matrix.png")
     if os.path.exists(cm_path):
         with st.expander("View Confusion Matrix"):
-            st.image(Image.open(cm_path), use_container_width=True)
+            st.image(Image.open(cm_path), width="stretch")
 
     st.markdown("---")
     st.caption("Developed for natural language credibility analysis and verifiable feature attribution.")
@@ -283,6 +283,12 @@ st.markdown(f"""
 # ---------------------------------------------------------
 # Main Tabs: Single Article vs Batch Analysis
 # ---------------------------------------------------------
+st.info(
+    "This tool compares an article's vocabulary and writing style with the ISOT dataset "
+    "(Reuters articles vs. articles from unreliable sites). It does not check facts and may be "
+    "wrong on other kinds of news."
+)
+
 main_tab1, main_tab2 = st.tabs(["Article Analysis", "Batch Dataset Evaluation"])
 
 with main_tab1:
@@ -302,24 +308,24 @@ with main_tab1:
         st.markdown("**Sample Benchmark Articles:**")
         p1, p2, p3, p4 = st.columns(4)
         
-        if p1.button("🚨 Health Clickbait", use_container_width=True):
+        if p1.button("🚨 Health Clickbait", width="stretch"):
             st.session_state.current_input = (
                 "ALERT: Drinking Boiled Lemon Water With Baking Soda Completely Destroys All Cancer Cells Overnight! "
                 "Doctors and Big Pharma are terrified of this suppressed breakthrough! Share this viral secret with your loved ones now!"
             )
-        if p2.button("🛸 Political Rumor", use_container_width=True):
+        if p2.button("🛸 Political Rumor", width="stretch"):
             st.session_state.current_input = (
                 "BOMBSHELL: Declassified Whistleblower Memo Exposes Secret Underground Government Base Beneath Denver! "
                 "Elite billionaires are hiding catastrophic planetary secrets from the American public. Mainstream media refuses to report this!"
             )
-        if p3.button("🏛️ Reuters Wire", use_container_width=True):
+        if p3.button("🏛️ Formal News Style", width="stretch"):
             st.session_state.current_input = (
-                "WASHINGTON (Reuters) - The United States Senate on Tuesday voted to approve a bipartisan federal funding measure. "
+                "The United States Senate on Tuesday voted to approve a bipartisan federal funding measure. "
                 "Congressional leaders announced the agreement following extended negotiations between party representatives in the capital."
             )
-        if p4.button("🔬 Science Journal", use_container_width=True):
+        if p4.button("🔬 Science News", width="stretch"):
             st.session_state.current_input = (
-                "PARIS (Reuters) - European space scientists confirmed the successful deployment of deep-space optical sensors. "
+                "European space scientists confirmed the successful deployment of deep-space optical sensors. "
                 "Researchers published their peer-reviewed findings in the Nature astronomy journal on Thursday morning."
             )
 
@@ -333,7 +339,7 @@ with main_tab1:
         url_input = st.text_input("Web Article URL:", placeholder="https://www.reuters.com/world/...")
         fetch_col, _ = st.columns([1, 4])
         with fetch_col:
-            fetch_btn = st.button("Fetch Content", use_container_width=True)
+            fetch_btn = st.button("Fetch Content", width="stretch")
             
         if fetch_btn and url_input:
             with st.spinner("Fetching article content..."):
@@ -352,7 +358,7 @@ with main_tab1:
 
     action_col, _ = st.columns([1, 3])
     with action_col:
-        analyze_btn = st.button("Analyze Article", type="primary", use_container_width=True)
+        analyze_btn = st.button("Analyze Article", type="primary", width="stretch")
 
     # ---------------------------------------------------------
     # Analysis Results Display
@@ -380,18 +386,18 @@ with main_tab1:
                 if is_fake:
                     st.markdown(f"""
                     <div class="status-card-fake">
-                        <div class="status-badge-fake">● Flagged as Manipulated / Fake Content</div>
+                        <div class="status-badge-fake">● Predicted: Fake</div>
                         <div style="font-size: 1.05rem; opacity: 0.95;">
-                            The classifier detected rhetorical patterns, sensationalist styling, and vocabulary strongly consistent with fabricated news stories.
+                            The model found vocabulary and style similar to the fake articles it was trained on. This is a statistical guess, not a fact-check.
                         </div>
                     </div>
                     """, unsafe_allow_html=True)
                 else:
                     st.markdown(f"""
                     <div class="status-card-real">
-                        <div class="status-badge-real">● Verified as Authentic Reporting</div>
+                        <div class="status-badge-real">● Predicted: Real</div>
                         <div style="font-size: 1.05rem; opacity: 0.95;">
-                            The text exhibits measured syntax, neutral attribution, and professional journalistic vocabulary consistent with established reporting.
+                            The model found vocabulary and style similar to the real articles it was trained on. This does not mean the claims are true.
                         </div>
                     </div>
                     """, unsafe_allow_html=True)
@@ -401,7 +407,7 @@ with main_tab1:
 
                 with c_left:
                     st.markdown("**Credibility Meter (Real %)**")
-                    st.plotly_chart(create_clean_gauge(probs["Real"]), use_container_width=True)
+                    st.plotly_chart(create_clean_gauge(probs["Real"]), width="stretch")
 
                 with c_right:
                     st.markdown("**Probability Breakdown**")
@@ -497,7 +503,7 @@ with main_tab2:
     if uploaded_csv is not None:
         try:
             batch_df = pd.read_csv(uploaded_csv)
-            st.dataframe(batch_df.head(3), use_container_width=True)
+            st.dataframe(batch_df.head(3), width="stretch")
 
             target_candidates = [c for c in batch_df.columns if c.lower() in ["text", "title", "content", "headline", "news"]]
             default_index = batch_df.columns.get_loc(target_candidates[0]) if target_candidates else 0
@@ -524,7 +530,7 @@ with main_tab2:
                     st.metric("Detected Real", (batch_df["Verdict"] == "REAL").sum())
 
                 with res_c2:
-                    st.dataframe(batch_df[[text_column, "Verdict", "Confidence_%"]].head(8), use_container_width=True)
+                    st.dataframe(batch_df[[text_column, "Verdict", "Confidence_%"]].head(8), width="stretch")
 
                 out_csv = batch_df.to_csv(index=False).encode('utf-8')
                 st.download_button(

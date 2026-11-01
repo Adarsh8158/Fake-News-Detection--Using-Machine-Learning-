@@ -9,7 +9,7 @@ A TF-IDF + Logistic Regression classifier that labels news articles as **Real** 
 - Word-level explanations: each word's impact is its TF-IDF weight times its model coefficient (`src/explain.py`)
 - Streamlit app with three input modes: paste text, load an article from a URL, or upload a CSV for batch prediction (`app.py`)
 - Robustness check for dataset leakage (`src/leakage_check.py`)
-- Unit tests (`tests/test_pipeline.py`)
+- Unit tests (`tests/`) and a GitHub Actions workflow
 
 ## Project Structure
 
@@ -22,20 +22,21 @@ A TF-IDF + Logistic Regression classifier that labels news articles as **Real** 
 │   └── leakage_check.py     # robustness check
 ├── models/fake_news_model.pkl
 ├── data/
-│   ├── True.csv, Fake.csv   # ISOT dataset
 │   ├── sample_news.csv      # tiny sample for quick tests
-│   └── README.md            # dataset information
+│   └── README.md            # dataset download instructions
 ├── reports/                 # metrics.json, confusion_matrix.png
-├── tests/test_pipeline.py
+├── tests/                   # test_pipeline.py, test_extra.py
 ├── 01_NLP_Basics.ipynb      # notebook: NLP basics
 ├── requirements.txt
 ├── run.bat                  # starts the app on Windows
+├── .github/workflows/tests.yml   # runs the tests on every push
+├── .gitattributes
 └── LICENSE
 ```
 
 ## Installation
 
-Requires Python 3.10 or newer.
+Requires Python 3.11 or newer. The saved model was created with scikit-learn 1.8.x; if you see a version warning when loading it, run `python src/train.py` to create a model with your own version.
 
 ```bash
 git clone https://github.com/Adarsh8158/Fake-News-Detection--Using-Machine-Learning-.git
@@ -50,11 +51,12 @@ pip install -r requirements.txt
 
 ## Dataset
 
-The model uses the **ISOT Fake News dataset**: `True.csv` (real articles from Reuters) and `Fake.csv` (articles from sites flagged as unreliable). Both files are included in the `data/` folder, so training works right after cloning.
+The model uses the **ISOT Fake News dataset**: `True.csv` (real articles from Reuters) and `Fake.csv` (articles from sites flagged as unreliable). The two files are over 100 MB together, so they are not stored in this repository.
 
-The dataset is from [Kaggle: Fake and Real News Dataset](https://www.kaggle.com/datasets/clmentbisaillon/fake-and-real-news-dataset); please refer to that page for its source and terms of use.
+1. Download the dataset from [Kaggle: Fake and Real News Dataset](https://www.kaggle.com/datasets/clmentbisaillon/fake-and-real-news-dataset).
+2. Put `True.csv` and `Fake.csv` in the `data/` folder.
 
-`data/sample_news.csv` is a small sample for quick testing and batch prediction in the app.
+Please refer to the Kaggle page for the dataset's source and terms of use. `data/sample_news.csv` is a small sample for quick testing and batch prediction in the app; the app and the tests work without the large files, and only `train.py` and `leakage_check.py` need them.
 
 ## Usage
 
@@ -74,11 +76,13 @@ python src/train.py
 
 This trains a new model on a train split and evaluates it on the held-out test split. It uses the first 2,000 rows of each file (4,000 articles, minus empty/duplicate texts) and a 75/25 stratified split, and overwrites `models/fake_news_model.pkl`, `reports/metrics.json` and `reports/confusion_matrix.png`. Use `--sample-size` to change the amount of data, or `--use-saved-model` to evaluate the existing model without retraining.
 
-Run the tests:
+Run the tests (they do not need the large CSV files):
 
 ```bash
 python -m unittest discover -s tests
 ```
+
+The tests cover text cleaning, edge cases (empty, non-English and very long input), the Real/Fake label mapping, the leakage-check helpers, and a small training smoke test on `data/sample_news.csv`. GitHub Actions runs them on every push.
 
 ## How It Works
 
@@ -108,6 +112,7 @@ The model was trained fresh on the train split, so the test articles were not se
 
 ## Known Limitations
 
+- **The app shows a statistical guess, not a verdict.** Its labels mean "looks like ISOT's real articles" or "looks like ISOT's fake articles", and the app says so.
 - **ISOT has well-known shortcuts.** Most real articles start with a source tag like `CITY (Reuters) -`, and the dataset contains duplicate articles. A model can score very high by learning these instead of anything about truthfulness. A high score on ISOT shows the model separates ISOT's two sources well, not that it detects misinformation in general.
 - **The model reads vocabulary and style, not facts.** It does not check claims against any source, so it is not a fact-checker.
 - **It may not generalise** to other news sources, topics or time periods without retraining and testing on data from those sources.

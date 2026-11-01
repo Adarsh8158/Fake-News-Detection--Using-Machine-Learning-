@@ -1,0 +1,9 @@
+# Keep line endings consistent between Windows and Linux
+* text=auto
+*.py text eol=lf
+*.md text eol=lf
+*.txt text eol=lf
+*.bat text eol=crlf
+*.csv text eol=lf
+*.pkl binary
+*.png binary
